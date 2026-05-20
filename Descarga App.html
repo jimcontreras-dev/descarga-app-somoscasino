@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Descarga la App — Somoscasino</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'DM Sans', sans-serif; background: #0E011D; color: #E3DBEB; -webkit-font-smoothing: antialiased; }
+
+    @keyframes fadeImg { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes pulse   { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    .step-card {
+      outline: 2px solid transparent;
+      outline-offset: 0px;
+      transition: outline-color 0.15s ease, border-color 0.3s;
+    }
+    .step-card:hover {
+      outline-color: #6E4F8F;
+    }
+
+    @media (max-width: 768px) {
+      .hero-grid       { grid-template-columns: 1fr !important; }
+      .qr-right        { width: 100% !important; flex-direction: row !important; padding: 16px 18px !important; gap: 16px !important; }
+      .hero-cta        { width: 100% !important; justify-content: center !important; }
+      .guide-grid      { grid-template-columns: 1fr !important; }
+      .phone-sticky-col{ display: none !important; }
+      .tl-wrap         { padding-left: 48px !important; }
+      .tl-circle       { left: -42px !important; width: 34px !important; height: 34px !important; font-size: 14px !important; }
+    }
+    @media (max-width: 480px) {
+      .qr-right { flex-direction: column !important; align-items: center !important; }
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useMemo, useCallback } = React;
+
+/* ── Tweaks panel (inlined) ───────────────────────────────────────────────── */
+const __TWEAKS_STYLE = `
+  .twk-panel{position:fixed;right:16px;bottom:16px;z-index:2147483646;width:280px;
+    max-height:calc(100vh - 32px);display:flex;flex-direction:column;
+    transform:scale(var(--dc-inv-zoom,1));transform-origin:bottom right;
+    background:rgba(250,249,247,.78);color:#29261b;
+    -webkit-backdrop-filter:blur(24px) saturate(160%);backdrop-filter:blur(24px) saturate(160%);
+    border:.5px solid rgba(255,255,255,.6);border-radius:14px;
+    box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 12px 40px rgba(0,0,0,.18);
+    font:11.5px/1.4 ui-sans-serif,system-ui,-apple-system,sans-serif;overflow:hidden}
+  .twk-hd{display:flex;align-items:center;justify-content:space-between;
+    padding:10px 8px 10px 14px;cursor:move;user-select:none}
+  .twk-hd b{font-size:12px;font-weight:600;letter-spacing:.01em}
+  .twk-x{appearance:none;border:0;background:transparent;color:rgba(41,38,27,.55);
+    width:22px;height:22px;border-radius:6px;cursor:default;font-size:13px;line-height:1}
+  .twk-x:hover{background:rgba(0,0,0,.06);color:#29261b}
+  .twk-body{padding:2px 14px 14px;display:flex;flex-direction:column;gap:10px;
+    overflow-y:auto;overflow-x:hidden;min-height:0;
+    scrollbar-width:thin;scrollbar-color:rgba(0,0,0,.15) transparent}
+  .twk-row{display:flex;flex-direction:column;gap:5px}
+  .twk-row-h{flex-direction:row;align-items:center;justify-content:space-between;gap:10px}
+  .twk-lbl{display:flex;justify-content:space-between;align-items:baseline;color:rgba(41,38,27,.72)}
+  .twk-lbl>span:first-child{font-weight:500}
+  .twk-val{color:rgba(41,38,27,.5);font-variant-numeric:tabular-nums}
+  .twk-sect{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    color:rgba(41,38,27,.45);padding:10px 0 0}
+  .twk-sect:first-child{padding-top:0}
+  .twk-field{appearance:none;box-sizing:border-box;width:100%;min-width:0;height:26px;padding:0 8px;
+    border:.5px solid rgba(0,0,0,.1);border-radius:7px;
+    background:rgba(255,255,255,.6);color:inherit;font:inherit;outline:none}
+  .twk-field:focus{border-color:rgba(0,0,0,.25);background:rgba(255,255,255,.85)}
+  .twk-chips{display:flex;gap:6px}
+  .twk-chip{position:relative;appearance:none;flex:1;min-width:0;height:46px;
+    padding:0;border:0;border-radius:6px;overflow:hidden;cursor:default;
+    box-shadow:0 0 0 .5px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.06);
+    transition:transform .12s cubic-bezier(.3,.7,.4,1),box-shadow .12s}
+  .twk-chip:hover{transform:translateY(-1px);box-shadow:0 0 0 .5px rgba(0,0,0,.18),0 4px 10px rgba(0,0,0,.12)}
+  .twk-chip[data-on="1"]{box-shadow:0 0 0 1.5px rgba(0,0,0,.85),0 2px 6px rgba(0,0,0,.15)}
+  .twk-chip svg{position:absolute;top:6px;left:6px;width:13px;height:13px;
+    filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))}
+`;
+
+function useTweaks(defaults) {
+  const [values, setValues] = useState(defaults);
+  const setTweak = useCallback((keyOrEdits, val) => {
+    const edits = typeof keyOrEdits === 'object' && keyOrEdits !== null
+      ? keyOrEdits : { [keyOrEdits]: val };
+    setValues((prev) => ({ ...prev, ...edits }));
+    window.parent.postMessage({ type: '__edit_mode_set_keys', edits }, '*');
+    window.dispatchEvent(new CustomEvent('tweakchange', { detail: edits }));
+  }, []);
+  return [values, setTweak];
+}
+
+function TweaksPanel({ title = 'Tweaks', children }) {
+  const [open, setOpen] = useState(false);
+  const dragRef = useRef(null);
+  const offsetRef = useRef({ x: 16, y: 16 });
+  const PAD = 16;
+
+  const clampToViewport = useCallback(() => {
+    const panel = dragRef.current;
+    if (!panel) return;
+    const w = panel.offsetWidth, h = panel.offsetHeight;
+    const maxRight = Math.max(PAD, window.innerWidth - w - PAD);
+    const maxBottom = Math.max(PAD, window.innerHeight - h - PAD);
+    offsetRef.current = {
+      x: Math.min(maxRight, Math.max(PAD, offsetRef.current.x)),
+      y: Math.min(maxBottom, Math.max(PAD, offsetRef.current.y)),
+    };
+    panel.style.right = offsetRef.current.x + 'px';
+    panel.style.bottom = offsetRef.current.y + 'px';
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    clampToViewport();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(clampToViewport) : null;
+    if (ro) { ro.observe(document.documentElement); return () => ro.disconnect(); }
+    window.addEventListener('resize', clampToViewport);
+    return () => window.removeEventListener('resize', clampToViewport);
+  }, [open, clampToViewport]);
+
+  useEffect(() => {
+    const onMsg = (e) => {
+      const t = e?.data?.type;
+      if (t === '__activate_edit_mode') setOpen(true);
+      else if (t === '__deactivate_edit_mode') setOpen(false);
+    };
+    window.addEventListener('message', onMsg);
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
+  const dismiss = () => { setOpen(false); window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*'); };
+
+  const onDragStart = (e) => {
+    const panel = dragRef.current;
+    if (!panel) return;
+    const r = panel.getBoundingClientRect();
+    const sx = e.clientX, sy = e.clientY;
+    const startRight = window.innerWidth - r.right;
+    const startBottom = window.innerHeight - r.bottom;
+    const move = (ev) => {
+      offsetRef.current = { x: startRight - (ev.clientX - sx), y: startBottom - (ev.clientY - sy) };
+      clampToViewport();
+    };
+    const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+  };
+
+  if (!open) return null;
+  return (
+    <>
+      <style>{__TWEAKS_STYLE}</style>
+      <div ref={dragRef} className="twk-panel" style={{ right: offsetRef.current.x, bottom: offsetRef.current.y }}>
+        <div className="twk-hd" onMouseDown={onDragStart}>
+          <b>{title}</b>
+          <button className="twk-x" onMouseDown={(e) => e.stopPropagation()} onClick={dismiss}>✕</button>
+        </div>
+        <div className="twk-body">{children}</div>
+      </div>
+    </>
+  );
+}
+
+function TweakSection({ title, children }) {
+  return <><div className="twk-sect">{title}</div>{children}</>;
+}
+
+function TweakText({ id, label, value, onChange }) {
+  return (
+    <div className="twk-row">
+      <div className="twk-lbl"><span>{label}</span></div>
+      <input className="twk-field" type="text" value={value} onChange={(e) => onChange(e.target.value)} />
+    </div>
+  );
+}
+
+function __twkIsLight(hex) {
+  const h = String(hex).replace('#', '');
+  const x = h.length === 3 ? h.replace(/./g, (c) => c + c) : h.padEnd(6, '0');
+  const n = parseInt(x.slice(0, 6), 16);
+  if (Number.isNaN(n)) return true;
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return r * 299 + g * 587 + b * 114 > 148000;
+}
+
+function TweakColor({ id, label, value, options, onChange }) {
+  if (!options || !options.length) {
+    return (
+      <div className="twk-row twk-row-h">
+        <div className="twk-lbl"><span>{label}</span></div>
+        <input type="color" value={value} onChange={(e) => onChange(e.target.value)}
+          style={{width:56,height:22,border:'.5px solid rgba(0,0,0,.1)',borderRadius:6,padding:0,cursor:'default',background:'transparent',flexShrink:0}} />
+      </div>
+    );
+  }
+  const key = (o) => String(JSON.stringify(o)).toLowerCase();
+  const cur = key(value);
+  return (
+    <div className="twk-row">
+      <div className="twk-lbl"><span>{label}</span></div>
+      <div className="twk-chips" role="radiogroup">
+        {options.map((o, i) => {
+          const colors = Array.isArray(o) ? o : [o];
+          const [hero] = colors;
+          const on = key(o) === cur;
+          return (
+            <button key={i} type="button" className="twk-chip" role="radio"
+              aria-checked={on} data-on={on ? '1' : '0'}
+              style={{ background: hero }} onClick={() => onChange(o)}>
+              {on && (
+                <svg viewBox="0 0 14 14" aria-hidden="true" style={{position:'absolute',top:6,left:6,width:13,height:13,filter:'drop-shadow(0 1px 1px rgba(0,0,0,.3))'}}>
+                  <path d="M3 7.2 5.8 10 11 4.2" fill="none" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" stroke={__twkIsLight(hero) ? 'rgba(0,0,0,.78)' : '#fff'} />
+                </svg>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ── App constants ────────────────────────────────────────────────────────── */
+const TWEAK_DEFAULTS = {
+  "accentColor": "#EB7A00",
+  "brandName": "Somoscasino",
+  "darkBg": "#0E011D"
+};
+
+const T = {
+  s1:'#211536', s2:'#26193A', s3:'#3C2E50',
+  green:'#22c55e', border:'rgba(236,220,255,0.09)', borderHover:'#6E4F8F',
+  text:'#E3DBEB', text2:'rgba(236,220,255,0.55)', text3:'#6E4F8F',
+  fD:"'Space Grotesk',sans-serif", fB:"'DM Sans',sans-serif",
+};
+
+const STEPS = [
+  { id:1, label:'PRIMER PASO',       title:'Descarga el archivo APK',
+    desc:'Haz clic en el botón de abajo para iniciar la descarga segura del instalador oficial en tu teléfono.',
+    extra:'button' },
+  { id:2, label:'AJUSTES NECESARIOS',title:'Permitir fuentes desconocidas',
+    desc:'Si es la primera vez que instalas una app fuera de la Play Store, Android te pedirá un permiso. Ve a:',
+    extra:'code', code:'Ajustes  →  Seguridad  →  Instalar apps desconocidas',
+    note:'Activa la casilla para el navegador que usaste (ej. Chrome).' },
+  { id:3, label:'DESCARGA',          title:'Abre el archivo APK',
+    desc:'Abre la barra de notificaciones o la carpeta Descargas, presiona el archivo somoscasino.apk y selecciona "Instalar".' },
+  { id:4, label:'INSTALACIÓN',       title:'Completa la instalación',
+    desc:'Sigue las instrucciones en pantalla. Android instalará la app en unos segundos. Toca "Listo" cuando termine.' },
+  { id:5, label:'¡LISTO!',           title:'Abre la app y juega',
+    desc:'Busca el ícono de Somoscasino en tu pantalla de inicio. Inicia sesión o regístrate en minutos.' },
+];
+
+const STEP_IMAGES = [
+  null,
+  'uploads/WhatsApp Image 2026-05-19 at 11.51.26 AM (1)-0a4ad0d9.jpeg',
+  'uploads/WhatsApp Image 2026-05-19 at 11.51.28 AM.jpeg',
+  'uploads/WhatsApp Image 2026-05-19 at 11.51.27 AM-8a5f8a56.jpeg',
+  'uploads/WhatsApp Image 2026-05-19 at 11.51.28 AM (1)-4e07cfd0.jpeg',
+];
+
+const APK_URL = 'https://www.somoscasino.com/storage/v1/public/SomosCasino.1.0.0.apk';
+
+/* ── PhoneFrame ───────────────────────────────────────────────────────────── */
+function PhoneFrame({ image, stepNum, gold }) {
+  return (
+    <div style={{
+      width:280, height:555, background:'#130225',
+      borderRadius:48, border:'2px solid rgba(255,255,255,0.09)',
+      boxShadow:'0 0 0 1px rgba(255,255,255,.02), 0 28px 64px rgba(0,0,0,.65), 0 0 80px '+gold+'10',
+      overflow:'hidden', position:'relative', flexShrink:0,
+      transform:'translateZ(0)', WebkitTransform:'translateZ(0)',
+    }}>
+      <div style={{position:'absolute',top:12,left:'50%',transform:'translateX(-50%)',width:102,height:30,background:'#000',borderRadius:18,zIndex:2}}></div>
+      <div style={{height:58,background:'#0E011D',display:'flex',alignItems:'flex-end',justifyContent:'space-between',padding:'0 24px 9px',fontSize:11,color:T.text3,position:'relative',zIndex:1}}>
+        <span style={{fontWeight:600}}>9:41</span>
+        <div style={{display:'flex',gap:4,alignItems:'center'}}>
+          <svg width="13" height="9" viewBox="0 0 13 9" fill={T.text3}><rect x="0" y="6" width="2" height="3" rx=".5"/><rect x="3" y="4" width="2" height="5" rx=".5"/><rect x="6" y="2" width="2" height="7" rx=".5"/><rect x="9" y="0" width="2" height="9" rx=".5"/></svg>
+          <div style={{width:20,height:10,border:'1px solid '+T.text3,borderRadius:3,padding:'1px'}}>
+            <div style={{width:'66%',height:'100%',background:T.green,borderRadius:1}}></div>
+          </div>
+        </div>
+      </div>
+      <div style={{width:'100%',height:'calc(100% - 58px)',position:'relative',overflow:'hidden',background:T.s2}}>
+        {image ? (
+          <img key={stepNum} src={image} alt={"Paso "+stepNum}
+            style={{width:'100%',height:'100%',objectFit:'cover',display:'block',animation:'fadeImg .35s ease',
+              WebkitBackfaceVisibility:'hidden',backfaceVisibility:'hidden'}}/>
+        ) : (
+          <div key="splash" style={{
+            width:'100%', height:'100%',
+            background:'linear-gradient(160deg, #1a0535 0%, #0E011D 55%, #2a0a1e 100%)',
+            display:'flex', flexDirection:'column',
+            alignItems:'center', justifyContent:'center',
+            gap:16, padding:'24px 16px',
+            animation:'fadeImg .35s ease',
+            position:'relative', overflow:'hidden',
+          }}>
+            <div style={{position:'absolute',top:'18%',left:'50%',transform:'translateX(-50%)',width:120,height:120,borderRadius:'50%',background:'#EB7A00',opacity:0.08,filter:'blur(32px)',pointerEvents:'none'}}></div>
+            <div style={{position:'absolute',top:'10%',right:'-18%',width:110,height:110,borderRadius:'50%',border:'2px solid #6E4F8F',opacity:0.25}}></div>
+            <div style={{position:'absolute',bottom:'12%',left:'-12%',width:80,height:80,borderRadius:'50%',border:'1.5px solid #EB7A00',opacity:0.18}}></div>
+            <div style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.1)',borderRadius:20,padding:'14px 18px',backdropFilter:'blur(8px)'}}>
+              <img src="uploads/sclogo.png" alt="Somoscasino" style={{width:136,display:'block'}}/>
+            </div>
+            <div style={{background:'#EB7A00',borderRadius:100,padding:'5px 16px',fontSize:10,fontWeight:700,letterSpacing:'0.1em',color:'#0E011D',fontFamily:T.fD}}>DESCARGA OFICIAL</div>
+            <div style={{width:48,height:2,borderRadius:2,background:'#6E4F8F',opacity:0.5}}></div>
+            <div style={{textAlign:'center',lineHeight:1.5}}>
+              <div style={{fontSize:13,fontWeight:600,color:'#E3DBEB',marginBottom:4}}>Disponible para Android</div>
+              <div style={{fontSize:11,color:'rgba(227,219,235,0.45)'}}>Escanea el QR o toca el botón</div>
+            </div>
+          </div>
+        )}
+      </div>
+      <div style={{position:'absolute',bottom:9,left:'50%',transform:'translateX(-50%)',width:70,height:5,background:'rgba(255,255,255,0.28)',borderRadius:100}}></div>
+    </div>
+  );
+}
+
+/* ── EdgeDeco ─────────────────────────────────────────────────────────────── */
+function EdgeDeco({ side, gold }) {
+  const L = side === 'left';
+  return (
+    <div style={{
+      position:'absolute', [L?'left':'right']:0,
+      top: L ? '12%' : '22%',
+      pointerEvents:'none', zIndex:0,
+      display:'flex', flexDirection:'column',
+      alignItems: L ? 'flex-start' : 'flex-end',
+      gap:16,
+    }}>
+      <div style={{width:7,height:100,background:gold,borderRadius:4,transform:'rotate('+(L?-38:38)+'deg)',transformOrigin:'center',opacity:0.7,boxShadow:'0 0 18px '+gold+'55'}}/>
+      <div style={{width:3,height:52,background:'#6E4F8F',borderRadius:2,transform:'rotate('+(L?-38:38)+'deg)',transformOrigin:'center',opacity:0.55,marginTop:4}}/>
+      <div style={{width:8,height:8,borderRadius:'50%',background:gold,opacity:0.3,marginTop:8,[L?'marginLeft':'marginRight']:12}}/>
+    </div>
+  );
+}
+
+/* ── App ──────────────────────────────────────────────────────────────────── */
+function App() {
+  const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const [activeStep, setActiveStep] = useState(0);
+
+  const gold  = tweaks.accentColor;
+  const bg    = tweaks.darkBg || '#0E011D';
+  const brand = tweaks.brandName || 'Somoscasino';
+
+  const handleDownload = (e) => {
+    e.preventDefault();
+    window.location.href = APK_URL;
+  };
+
+  return (
+    <div style={{minHeight:'100vh', background:bg}}>
+
+      {/* ═══ HERO ═══ */}
+      <section style={{padding:'clamp(40px,6vw,72px) clamp(24px,6vw,64px)', position:'relative', overflow:'hidden'}}>
+        <EdgeDeco side="left" gold={gold}/>
+        <EdgeDeco side="right" gold={gold}/>
+        <div style={{position:'absolute',inset:0,background:'radial-gradient(ellipse 70% 50% at 50% 0%, '+gold+'18 0%, transparent 65%)',pointerEvents:'none'}}></div>
+        <div className="hero-grid" style={{position:'relative',maxWidth:1080,margin:'0 auto',display:'grid',gridTemplateColumns:'1fr 340px',gap:'clamp(32px,5vw,64px)',alignItems:'center'}}>
+
+          <div>
+            <h1 style={{fontFamily:T.fD,fontWeight:700,fontSize:'clamp(30px,4.5vw,52px)',lineHeight:1.1,letterSpacing:'-0.025em',color:T.text,marginBottom:14}}>
+              Descarga la app<br/><span style={{color:gold}}>de {brand}</span>
+            </h1>
+            <p style={{fontSize:'clamp(14px,1.4vw,16px)',color:T.text2,lineHeight:1.7,marginBottom:32,maxWidth:480}}>
+              Descarga la app de {brand} escaneando el código QR con tu teléfono.
+            </p>
+            <a className="hero-cta" href={APK_URL} download onClick={handleDownload}
+              style={{display:'inline-flex',alignItems:'center',gap:12,background:gold,color:'#0E011D',border:'none',borderRadius:12,padding:'13px 26px',fontFamily:T.fD,fontWeight:700,fontSize:15,cursor:'pointer',boxShadow:'0 8px 28px '+gold+'35',textDecoration:'none'}}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993.0001.5511-.4482.9997-.9993.9997m-11.046 0c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993 0 .5511-.4482.9997-.9993.9997m11.4045-6.02l1.9973-3.4592a.416.416 0 00-.1521-.5676.416.416 0 00-.5676.1521l-2.0223 3.503C15.5902 8.2439 13.8533 7.8508 12 7.8508s-3.5902.3931-5.1367 1.0989L4.841 5.4467a.4161.4161 0 00-.5677-.1521.4157.4157 0 00-.1521.5676l1.9973 3.4592C2.6889 11.1867.3432 14.6589 0 18.761h24c-.3435-4.1021-2.6892-7.5743-6.1185-9.4396"/></svg>
+              Descargar APK Android
+            </a>
+          </div>
+
+          <div className="qr-right" style={{background:T.s1,border:'1px solid '+T.border,borderRadius:22,padding:'24px',display:'flex',flexDirection:'column',alignItems:'center',gap:14,boxShadow:'0 20px 60px rgba(0,0,0,0.4)'}}>
+            <div style={{background:'#fff',borderRadius:16,padding:6}}>
+              <img src="uploads/qr_somoscasino.png" alt="QR Somoscasino" style={{width:260,height:260,display:'block',borderRadius:10}}/>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ GUIDE ═══ */}
+      <section style={{padding:'0 clamp(24px,6vw,64px) 80px', position:'relative'}}>
+        <EdgeDeco side="left" gold={gold}/>
+        <EdgeDeco side="right" gold={gold}/>
+
+        <div style={{textAlign:'center',marginBottom:52,maxWidth:1080,margin:'0 auto 52px'}}>
+          <div style={{width:48,height:48,borderRadius:'50%',background:gold+'18',border:'1px solid '+gold+'30',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill={gold}><path d="M17.523 15.3414c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993.0001.5511-.4482.9997-.9993.9997m-11.046 0c-.5511 0-.9993-.4486-.9993-.9997s.4482-.9993.9993-.9993c.5511 0 .9993.4482.9993.9993 0 .5511-.4482.9997-.9993.9997m11.4045-6.02l1.9973-3.4592a.416.416 0 00-.1521-.5676.416.416 0 00-.5676.1521l-2.0223 3.503C15.5902 8.2439 13.8533 7.8508 12 7.8508s-3.5902.3931-5.1367 1.0989L4.841 5.4467a.4161.4161 0 00-.5677-.1521.4157.4157 0 00-.1521.5676l1.9973 3.4592C2.6889 11.1867.3432 14.6589 0 18.761h24c-.3435-4.1021-2.6892-7.5743-6.1185-9.4396"/></svg>
+          </div>
+          <h2 style={{fontFamily:T.fD,fontWeight:700,fontSize:'clamp(22px,3vw,32px)',letterSpacing:'-0.02em',color:T.text,marginBottom:10}}>Guía de Instalación</h2>
+          <p style={{fontSize:15,color:T.text2,maxWidth:440,margin:'0 auto',lineHeight:1.65}}>Sigue estos sencillos pasos para instalar la app en tu dispositivo Android en un par de minutos.</p>
+        </div>
+
+        <div className="guide-grid" style={{display:'grid',gridTemplateColumns:'316px 1fr',gap:'0 56px',alignItems:'start',maxWidth:1080,margin:'0 auto'}}>
+
+          {/* Phone (sticky) */}
+          <div className="phone-sticky-col" style={{position:'sticky',top:40,alignSelf:'start',display:'flex',flexDirection:'column',alignItems:'center',gap:16}}>
+            <PhoneFrame image={STEP_IMAGES[activeStep]} stepNum={activeStep+1} gold={gold}/>
+            <div style={{display:'flex',gap:7,alignItems:'center'}}>
+              {STEPS.map((_,i)=>(
+                <div key={i} style={{width:i===activeStep?18:6,height:6,borderRadius:100,background:i===activeStep?gold:T.s3,transition:'all .3s'}}></div>
+              ))}
+            </div>
+            <div style={{fontSize:11,color:T.text3,fontFamily:T.fD,fontWeight:600,letterSpacing:'0.04em'}}>
+              PASO {activeStep+1} DE {STEPS.length}
+            </div>
+          </div>
+
+          {/* Timeline */}
+          <div className="tl-wrap" style={{position:'relative',paddingLeft:60}}>
+            <div style={{position:'absolute',left:19,top:22,bottom:44,width:2,background:'linear-gradient(to bottom, '+gold+'55, '+gold+'08)'}}></div>
+
+            {STEPS.map((step, idx) => (
+              <div key={step.id} onMouseEnter={() => setActiveStep(idx)} style={{position:'relative',marginBottom: idx<STEPS.length-1 ? 24 : 0}}>
+                <div className="tl-circle" style={{
+                  position:'absolute',left:-46,top:20,
+                  width:40,height:40,borderRadius:'50%',
+                  background: idx===activeStep ? gold : T.s3,
+                  color: idx===activeStep ? '#0E011D' : T.text3,
+                  display:'flex',alignItems:'center',justifyContent:'center',
+                  fontFamily:T.fD,fontWeight:700,fontSize:16,
+                  boxShadow:'0 0 0 4px '+bg+', 0 0 0 5px '+(idx===activeStep ? gold+'50' : 'transparent'),
+                  transition:'all .3s', zIndex:1,
+                }}>{step.id}</div>
+
+                <div className="step-card" style={{
+                  background:T.s1,
+                  border:'1px solid '+(idx===activeStep ? gold+'28' : T.border),
+                  borderRadius:14,padding:'20px 24px',
+                }}>
+                  <div style={{fontFamily:T.fD,fontWeight:700,fontSize:10,letterSpacing:'0.1em',color:gold,marginBottom:6}}>{step.label}</div>
+                  <h3 style={{fontFamily:T.fD,fontWeight:700,fontSize:18,color:T.text,marginBottom:10,letterSpacing:'-0.015em'}}>{step.title}</h3>
+                  <p style={{fontSize:14,color:T.text2,lineHeight:1.7}}>{step.desc}</p>
+
+                  {step.extra==='button' && (
+                    <a href={APK_URL} download onClick={handleDownload}
+                      style={{display:'inline-flex',alignItems:'center',gap:10,marginTop:16,background:gold,color:'#0E011D',border:'none',borderRadius:10,padding:'11px 22px',fontFamily:T.fD,fontWeight:700,fontSize:14,cursor:'pointer',textDecoration:'none'}}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 16l-6-6h4V4h4v6h4l-6 6zm-8 4h16v-2H4v2z"/></svg>
+                      Descargar APK aquí
+                    </a>
+                  )}
+
+                  {step.extra==='code' && (
+                    <div style={{marginTop:14}}>
+                      <div style={{background:T.s3,border:'1px solid '+T.border,borderRadius:8,padding:'10px 16px',fontFamily:'monospace',fontSize:12.5,color:T.text2,lineHeight:1.5}}>{step.code}</div>
+                      <p style={{marginTop:8,fontSize:12,color:T.text3,fontStyle:'italic',lineHeight:1.5}}>{step.note}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Tweaks */}
+      <TweaksPanel title="Tweaks">
+        <TweakSection title="Marca">
+          <TweakText id="brandName" label="Nombre" value={brand} onChange={(v) => setTweak('brandName', v)}/>
+        </TweakSection>
+        <TweakSection title="Colores">
+          <TweakColor id="accentColor" label="Acento" value={gold} options={['#EB7A00','#22c55e','#6366f1','#e85d04','#E3DBEB']} onChange={(v) => setTweak('accentColor', v)}/>
+          <TweakColor id="darkBg" label="Fondo" value={bg} options={['#0E011D','#0c0c0c','#070f0a','#0d0a14']} onChange={(v) => setTweak('darkBg', v)}/>
+        </TweakSection>
+      </TweaksPanel>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
