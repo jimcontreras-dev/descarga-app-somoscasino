@@ -11,7 +11,7 @@
   <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; width: 100%; }
+    html { scroll-behavior: smooth; }
     body { font-family: 'DM Sans', sans-serif; background: #0E011D; color: #E3DBEB; -webkit-font-smoothing: antialiased; }
 
     @keyframes fadeImg { from { opacity: 0; } to { opacity: 1; } }
@@ -363,7 +363,7 @@ function App() {
     <div style={{minHeight:'100vh', background:bg}}>
 
       {/* ═══ HERO ═══ */}
-      <section style={{padding:'clamp(40px,6vw,72px) clamp(24px,6vw,64px)', position:'relative', overflow:'hidden'}}>
+      <section style={{paddingTop:'clamp(40px,6vw,72px)', position:'relative', overflow:'hidden'}}>
         <EdgeDeco side="left" gold={gold}/>
         <EdgeDeco side="right" gold={gold}/>
         <div style={{position:'absolute',inset:0,background:'radial-gradient(ellipse 70% 50% at 50% 0%, '+gold+'18 0%, transparent 65%)',pointerEvents:'none'}}></div>
@@ -392,7 +392,7 @@ function App() {
       </section>
 
       {/* ═══ GUIDE ═══ */}
-      <section style={{padding:'0 clamp(24px,6vw,64px) 80px', position:'relative'}}>
+      <section style={{padding:'0 clamp(24px,6vw,64px) 80px', position:'relative', overflow:'hidden'}}>
         <EdgeDeco side="left" gold={gold}/>
         <EdgeDeco side="right" gold={gold}/>
 
@@ -481,22 +481,6 @@ function App() {
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
-</script>
-<script>
-  // Comunicar altura real al iframe padre (somoscasino.com)
-  // para que ajuste el height del iframe dinámicamente
-  function notifyParentHeight() {
-    var h = Math.max(
-      document.body.scrollHeight,
-      document.documentElement.scrollHeight
-    );
-    window.parent.postMessage({ type: 'iframeHeight', height: h }, '*');
-  }
-  window.addEventListener('load', notifyParentHeight);
-  window.addEventListener('resize', notifyParentHeight);
-  if (typeof ResizeObserver !== 'undefined') {
-    new ResizeObserver(notifyParentHeight).observe(document.body);
-  }
 </script>
 </body>
 </html>
