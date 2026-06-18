@@ -356,7 +356,12 @@ function App() {
 
   const handleDownload = (e) => {
     e.preventDefault();
-    window.location.href = APK_URL();
+    const url = APK_URL();
+    // Abrir en ventana nueva para que la descarga funcione aunque la página
+    // esté incrustada en un iframe con sandbox (usa allow-popups-to-escape-sandbox).
+    const w = window.open(url, '_blank', 'noopener');
+    // Si el popup fue bloqueado, intenta navegar directamente como respaldo.
+    if (!w) { window.location.href = url; }
   };
 
   return (
