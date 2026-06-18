@@ -357,11 +357,16 @@ function App() {
   const handleDownload = (e) => {
     e.preventDefault();
     const url = APK_URL();
-    // Abrir en ventana nueva para que la descarga funcione aunque la página
-    // esté incrustada en un iframe con sandbox (usa allow-popups-to-escape-sandbox).
-    const w = window.open(url, '_blank', 'noopener');
-    // Si el popup fue bloqueado, intenta navegar directamente como respaldo.
-    if (!w) { window.location.href = url; }
+    // Abrir en pestaña nueva mediante un <a target="_blank">. Así la descarga
+    // funciona aunque la página esté incrustada en un iframe con sandbox
+    // (la pestaña nueva escapa del sandbox vía allow-popups-to-escape-sandbox).
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   };
 
   return (
